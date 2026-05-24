@@ -184,12 +184,7 @@
     width: 100%;
   }
 
-  /* ================== SECTION 1: dot grid ================== */
-  #dot-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
+  /* ================== SECTION 1: blueprint grid ================== */
 
   /* Brand logo reveal in section 1 */
   .brand-mark {
@@ -246,41 +241,138 @@
       0 -20px 60px rgba(255, 160, 80, 0.06);
   }
   .service-card {
+    display: none; /* deprecated — replaced by .cabinet-card */
+  }
+
+  /* ================== CABINET CARDS ================== */
+  .cabinet-card {
     position: relative;
-    border: 1px solid rgba(255, 210, 138, 0.14);
+    transform-style: preserve-3d;
     background:
-      linear-gradient(
-        135deg,
-        rgba(255, 210, 138, 0.04),
-        rgba(255, 255, 255, 0.015)
+      repeating-linear-gradient(
+        180deg,
+        rgba(42, 24, 11, 0.97) 0px,
+        rgba(28, 15, 6, 0.97) 6px,
+        rgba(38, 21, 9, 0.97) 7px,
+        rgba(26, 13, 5, 0.97) 14px
       );
-    backdrop-filter: blur(6px);
+    border: 1px solid rgba(120, 80, 40, 0.35);
+    border-top: 1px solid rgba(216, 164, 100, 0.45);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 200, 130, 0.2),
+      inset 0 -2px 8px rgba(0, 0, 0, 0.5),
+      0 8px 32px rgba(0, 0, 0, 0.6);
     transition:
       transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 0.5s ease,
       box-shadow 0.5s ease;
     overflow: hidden;
   }
-  .service-card::before {
+  .cabinet-card::before {
     content: '';
     position: absolute;
-    inset: -1px;
-    background: radial-gradient(
-      400px circle at var(--mx, 50%) var(--my, 50%),
-      rgba(255, 210, 138, 0.18),
-      transparent 40%
-    );
-    opacity: 0;
-    transition: opacity 0.4s ease;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 200, 130, 0.04) 0px,
+        rgba(255, 200, 130, 0.04) 1px,
+        transparent 1px,
+        transparent 18px
+      );
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .cabinet-card:hover {
+    transform: translateZ(20px) translateY(-4px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 200, 130, 0.3),
+      0 20px 60px rgba(0, 0, 0, 0.7),
+      0 4px 20px rgba(255, 160, 80, 0.1);
+  }
+  /* Metallic brass pull-handle */
+  .cabinet-handle {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 8px;
+    border-radius: 4px;
+    background: radial-gradient(ellipse at 50% 30%, #f5d9a5, #b8893a 40%, #6b4e1f 80%, #3a2a12 100%);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.7),
+      0 1px 2px rgba(255, 200, 130, 0.3),
+      inset 0 1px 0 rgba(255, 240, 200, 0.4);
+  }
+  .cabinet-handle::before,
+  .cabinet-handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #d4a84b, #5a3d16);
+    box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.5);
+  }
+  .cabinet-handle::before { left: -2px; }
+  .cabinet-handle::after { right: -2px; }
+
+  /* ================== BLUEPRINT GRID ================== */
+  .blueprint-grid {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background:
+      /* Fine 40px grid lines */
+      linear-gradient(90deg, rgba(255, 210, 138, 0.08) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255, 210, 138, 0.08) 1px, transparent 1px),
+      /* Major 200px grid lines */
+      linear-gradient(90deg, rgba(255, 210, 138, 0.14) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255, 210, 138, 0.14) 1px, transparent 1px),
+      /* Subtle radial glow from center */
+      radial-gradient(ellipse at 50% 50%, rgba(255, 180, 90, 0.08) 0%, transparent 60%);
+    background-size:
+      40px 40px,
+      40px 40px,
+      200px 200px,
+      200px 200px,
+      100% 100%;
+  }
+  /* Concentric dashed rings */
+  .blueprint-grid::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 500px;
+    height: 500px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px dashed rgba(255, 210, 138, 0.12);
+    box-shadow:
+      inset 0 0 0 60px transparent,
+      inset 0 0 0 61px rgba(255, 210, 138, 0.08),
+      inset 0 0 0 120px transparent,
+      inset 0 0 0 121px rgba(255, 210, 138, 0.06),
+      inset 0 0 0 180px transparent,
+      inset 0 0 0 181px rgba(255, 210, 138, 0.05);
     pointer-events: none;
   }
-  .service-card:hover {
-    transform: translateY(-8px);
-    border-color: rgba(255, 210, 138, 0.45);
-    box-shadow: 0 30px 80px rgba(255, 160, 80, 0.12);
-  }
-  .service-card:hover::before {
-    opacity: 1;
+  /* Crosshair markers at center */
+  .blueprint-grid::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    transform: translate(-50%, -50%);
+    background:
+      linear-gradient(90deg, transparent 45%, rgba(255, 210, 138, 0.25) 45%, rgba(255, 210, 138, 0.25) 55%, transparent 55%),
+      linear-gradient(0deg, transparent 45%, rgba(255, 210, 138, 0.25) 45%, rgba(255, 210, 138, 0.25) 55%, transparent 55%);
+    pointer-events: none;
   }
 
   /* ================== SECTION 4: carousel ================== */
@@ -943,44 +1035,131 @@
       <!-- Halo -->
       <div class="halo"></div>
 
-      <!-- Lamp 1 — Ceiling Bulb -->
+      <!-- Lamp 1 — Vintage Edison Bulb -->
       <div class="lamp is-active" data-lamp="1">
         <svg viewBox="0 0 240 360" class="w-full h-full overflow-visible">
           <defs>
-            <radialGradient id="bulb1" cx="50%" cy="55%" r="55%">
-              <stop offset="0%" stop-color="#fff5d6" stop-opacity="1" />
-              <stop offset="40%" stop-color="#ffd28a" stop-opacity="0.95" />
-              <stop offset="80%" stop-color="#ff9b3d" stop-opacity="0.55" />
-              <stop offset="100%" stop-color="#5a2d0a" stop-opacity="0.2" />
-            </radialGradient>
-            <filter id="soft1" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="1.4" />
+            <!-- Amber glow filter for filament -->
+            <filter id="filamentGlow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1" />
+              <feColorMatrix in="blur1" type="matrix"
+                values="1 0.4 0 0 0.1
+                        0 0.6 0 0 0.05
+                        0 0 0.2 0 0
+                        0 0 0 0.9 0" result="amber" />
+              <feMerge>
+                <feMergeNode in="amber" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
             </filter>
+            <!-- Outer soft glow for glass envelope -->
+            <filter id="glassGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="2.5" />
+            </filter>
+            <!-- Radial gradient for glass body -->
+            <radialGradient id="edisonGlass" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fff8e1" stop-opacity="0.12" />
+              <stop offset="40%" stop-color="#ffd28a" stop-opacity="0.08" />
+              <stop offset="75%" stop-color="#cc8833" stop-opacity="0.05" />
+              <stop offset="100%" stop-color="#4a2a0a" stop-opacity="0.03" />
+            </radialGradient>
+            <!-- Brass base gradient -->
+            <linearGradient id="brassBase" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d4a84b" />
+              <stop offset="20%" stop-color="#b8893a" />
+              <stop offset="40%" stop-color="#8b6528" />
+              <stop offset="60%" stop-color="#a07832" />
+              <stop offset="80%" stop-color="#6b4e1f" />
+              <stop offset="100%" stop-color="#3a2a12" />
+            </linearGradient>
           </defs>
+
           <!-- Cord -->
-          <line x1="120" y1="-200" x2="120" y2="140" stroke="#1a1208" stroke-width="2" />
-          <!-- Socket -->
-          <rect x="104" y="138" width="32" height="34" rx="3" fill="#1a1208" />
-          <rect x="100" y="170" width="40" height="10" rx="2" fill="#2a1d10" />
-          <!-- Bulb body (pear) -->
+          <line x1="120" y1="-200" x2="120" y2="118" stroke="#1a1208" stroke-width="2" />
+
+          <!-- Antique Brass Threaded Screw Base -->
+          <!-- Top cap -->
+          <rect x="108" y="118" width="24" height="8" rx="2" fill="url(#brassBase)" />
+          <!-- Thread ridges -->
+          <rect x="102" y="126" width="36" height="5" rx="1" fill="#a07832" stroke="#6b4e1f" stroke-width="0.5" />
+          <rect x="103" y="131" width="34" height="5" rx="1" fill="#8b6528" stroke="#5a3d16" stroke-width="0.5" />
+          <rect x="102" y="136" width="36" height="5" rx="1" fill="#a07832" stroke="#6b4e1f" stroke-width="0.5" />
+          <rect x="103" y="141" width="34" height="5" rx="1" fill="#8b6528" stroke="#5a3d16" stroke-width="0.5" />
+          <rect x="102" y="146" width="36" height="5" rx="1" fill="#a07832" stroke="#6b4e1f" stroke-width="0.5" />
+          <rect x="104" y="151" width="32" height="4" rx="1" fill="#6b4e1f" />
+          <!-- Base collar -->
+          <ellipse cx="120" cy="156" rx="18" ry="4" fill="#3a2a12" />
+
+          <!-- Elongated ST64 Tubular Glass Envelope -->
           <path
-            d="M120 178
-               C 80 178, 56 210, 56 248
-               C 56 290, 88 318, 120 318
-               C 152 318, 184 290, 184 248
-               C 184 210, 160 178, 120 178 Z"
-            fill="url(#bulb1)"
-            filter="url(#soft1)"
+            d="M120 158
+               C 100 158, 88 172, 84 195
+               C 80 220, 80 250, 82 275
+               C 84 300, 92 320, 105 332
+               C 112 338, 120 340, 120 340
+               C 120 340, 128 338, 135 332
+               C 148 320, 156 300, 158 275
+               C 160 250, 160 220, 156 195
+               C 152 172, 140 158, 120 158 Z"
+            fill="url(#edisonGlass)"
+            stroke="rgba(204,136,51,0.2)"
+            stroke-width="0.8"
+            filter="url(#glassGlow)"
           />
-          <!-- Filament -->
+          <!-- Glass highlight reflection -->
           <path
-            d="M100 250 Q120 230 140 250 Q120 280 100 250"
-            stroke="#fff2c8"
+            d="M104 180 C100 200, 98 240, 100 280 C101 295, 104 308, 108 318"
+            stroke="rgba(255,248,225,0.12)"
             stroke-width="1.5"
             fill="none"
-            opacity="0.9"
+            stroke-linecap="round"
           />
-          <circle cx="120" cy="250" r="3" fill="#fff5d6" />
+
+          <!-- Multi-loop Spiral Carbon Filament -->
+          <g filter="url(#filamentGlow)">
+            <!-- Support wires from base -->
+            <line x1="112" y1="158" x2="112" y2="200" stroke="#8b6528" stroke-width="0.6" />
+            <line x1="128" y1="158" x2="128" y2="200" stroke="#8b6528" stroke-width="0.6" />
+            <!-- Filament loops -->
+            <path
+              d="M112 200
+                 C 108 210, 105 218, 108 226
+                 C 111 234, 118 230, 115 222
+                 C 112 214, 108 220, 112 228
+                 C 116 236, 122 232, 120 224
+                 C 118 216, 113 222, 117 230
+                 C 121 238, 126 234, 124 226
+                 C 122 218, 117 224, 121 232
+                 C 125 240, 130 236, 128 228
+                 C 126 220, 121 226, 125 234
+                 C 129 242, 134 238, 132 230
+                 C 130 222, 128 218, 128 200"
+              stroke="#ffe4a0"
+              stroke-width="1.2"
+              fill="none"
+              stroke-linecap="round"
+              opacity="0.95"
+            >
+              <animate attributeName="opacity" values="0.85;1;0.9;1;0.85" dur="2.8s" repeatCount="indefinite" />
+            </path>
+            <!-- Central glow point -->
+            <ellipse cx="120" cy="226" rx="8" ry="14" fill="#ffe4a0" opacity="0.25">
+              <animate attributeName="opacity" values="0.2;0.35;0.2" dur="2.8s" repeatCount="indefinite" />
+            </ellipse>
+            <!-- Bright filament core -->
+            <path
+              d="M114 210 Q117 220, 114 230 Q118 236, 122 230 Q125 220, 122 210 Q126 216, 128 226 Q125 236, 120 232"
+              stroke="#fff5d6"
+              stroke-width="0.8"
+              fill="none"
+              opacity="0.7"
+            >
+              <animate attributeName="opacity" values="0.6;0.85;0.6" dur="3.2s" repeatCount="indefinite" />
+            </path>
+          </g>
+
+          <!-- Bottom tip of the bulb -->
+          <ellipse cx="120" cy="340" rx="4" ry="2" fill="rgba(204,136,51,0.15)" />
         </svg>
       </div>
 
@@ -1222,9 +1401,9 @@
         </div>
       </div>
 
-      <!-- Right: dot grid -->
+      <!-- Right: blueprint grid -->
       <div class="relative h-[60vh] md:h-auto">
-        <canvas id="dot-canvas"></canvas>
+        <div class="blueprint-grid"></div>
         <div class="absolute top-10 right-10 text-right max-w-xs">
           <h1 class="font-serif text-5xl md:text-7xl leading-[0.95] text-glow">
             We light <br />the rooms <br /><em class="text-white/90">ideas</em> live in.
@@ -1310,7 +1489,7 @@
       <div class="mt-auto">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto px-2 pb-10">
           <!-- SEO -->
-          <article class="service-card rounded-2xl p-7 reveal-up">
+          <article class="cabinet-card rounded-2xl p-7 reveal-up">
             <div class="flex items-center justify-between">
               <div class="font-display text-glow text-xs tracking-[0.35em]">01 / SEO</div>
               <svg class="w-6 h-6 text-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -1330,10 +1509,11 @@
               <li>· Topical authority maps</li>
               <li>· Editorial SEO craft</li>
             </ul>
+            <div class="cabinet-handle" aria-hidden="true"></div>
           </article>
 
           <!-- SEM -->
-          <article class="service-card rounded-2xl p-7 reveal-up">
+          <article class="cabinet-card rounded-2xl p-7 reveal-up">
             <div class="flex items-center justify-between">
               <div class="font-display text-glow text-xs tracking-[0.35em]">02 / SEM</div>
               <svg class="w-6 h-6 text-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -1352,10 +1532,11 @@
               <li>· Creative testing systems</li>
               <li>· Attribution & forecasting</li>
             </ul>
+            <div class="cabinet-handle" aria-hidden="true"></div>
           </article>
 
           <!-- SMM -->
-          <article class="service-card rounded-2xl p-7 reveal-up">
+          <article class="cabinet-card rounded-2xl p-7 reveal-up">
             <div class="flex items-center justify-between">
               <div class="font-display text-glow text-xs tracking-[0.35em]">03 / SMM</div>
               <svg class="w-6 h-6 text-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -1374,6 +1555,7 @@
               <li>· Short-form motion</li>
               <li>· Community choreography</li>
             </ul>
+            <div class="cabinet-handle" aria-hidden="true"></div>
           </article>
         </div>
 
@@ -1591,81 +1773,13 @@
     gsap.registerPlugin(ScrollTrigger);
 
     /* ============================================================
-       1) Reactive dot grid (Section 1, right side)
+       1) Blueprint grid is now pure CSS — no JS needed
        ============================================================ */
-    (function dotGrid() {
-      const canvas = document.getElementById('dot-canvas');
-      const ctx = canvas.getContext('2d');
-      let w, h, dots = [];
-      const SPACING = 26;
-      const mouse = { x: -9999, y: -9999 };
-
-      function resize() {
-        const rect = canvas.getBoundingClientRect();
-        w = canvas.width = rect.width * devicePixelRatio;
-        h = canvas.height = rect.height * devicePixelRatio;
-        canvas.style.width = rect.width + 'px';
-        canvas.style.height = rect.height + 'px';
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(devicePixelRatio, devicePixelRatio);
-        buildDots(rect.width, rect.height);
-      }
-
-      function buildDots(W, H) {
-        dots = [];
-        for (let y = SPACING; y < H; y += SPACING) {
-          for (let x = SPACING; x < W; x += SPACING) {
-            dots.push({ x, y, ox: x, oy: y });
-          }
-        }
-      }
-
-      function loop() {
-        const rect = canvas.getBoundingClientRect();
-        ctx.clearRect(0, 0, rect.width, rect.height);
-
-        for (const d of dots) {
-          const dx = d.ox - mouse.x;
-          const dy = d.oy - mouse.y;
-          const dist = Math.hypot(dx, dy);
-          const max = 160;
-          const t = Math.max(0, 1 - dist / max);
-
-          // gentle pull toward cursor
-          d.x += ((d.ox - dx * t * 0.18) - d.x) * 0.12;
-          d.y += ((d.oy - dy * t * 0.18) - d.y) * 0.12;
-
-          const alpha = 0.18 + t * 0.82;
-          const r = 1 + t * 2.4;
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(255, 210, 138, ${alpha})`;
-          ctx.shadowColor = 'rgba(255, 200, 130, 0.7)';
-          ctx.shadowBlur = t > 0.3 ? 12 * t : 0;
-          ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.shadowBlur = 0;
-        requestAnimationFrame(loop);
-      }
-
-      canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouse.x = e.clientX - rect.left;
-        mouse.y = e.clientY - rect.top;
-      });
-      canvas.addEventListener('mouseleave', () => {
-        mouse.x = mouse.y = -9999;
-      });
-
-      window.addEventListener('resize', resize);
-      resize();
-      loop();
-    })();
 
     /* ============================================================
-       2) Service card spotlight (mouse coords -> CSS vars)
+       2) Cabinet card hover depth (mouse coords -> CSS vars)
        ============================================================ */
-    document.querySelectorAll('.service-card').forEach((card) => {
+    document.querySelectorAll('.cabinet-card').forEach((card) => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
         const mx = ((e.clientX - rect.left) / rect.width) * 100;
