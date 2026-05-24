@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import Particles from "./Particles";
+import WallText from "./WallText";
 
 const services = [
   {
@@ -68,16 +69,16 @@ function Header() {
         >
           What we do
         </motion.span>
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.9, ease: [0.22, 0.8, 0.2, 1] }}
-          className="mt-3 max-w-3xl font-display text-[clamp(2.4rem,5vw,4.4rem)] leading-[1.02] text-white"
-        >
-          Six disciplines, <span className="italic text-amber-warm">one</span>{" "}
-          quiet kitchen.
-        </motion.h2>
+        {/* Title is rendered via WallText so it feels projected onto the
+            back wall rather than printed on a flat layer. */}
+        <div className="mt-3 max-w-3xl font-display text-[clamp(2.4rem,5vw,4.4rem)] leading-[1.02] text-white">
+          <WallText
+            as="h2"
+            text="Six disciplines, one quiet kitchen."
+            stagger={0.07}
+            accentLast={false}
+          />
+        </div>
       </div>
       <motion.p
         initial={{ opacity: 0, y: 20 }}
@@ -100,70 +101,108 @@ type CardProps = {
   index: number;
 };
 
+/**
+ * Card with the "emerge from light" treatment.
+ *
+ * When the card enters the viewport, a small amber glow is born above it
+ * and expands into the card's footprint. The card itself rises from below
+ * with a blur fade, giving the impression that it is being projected by
+ * the light rather than scrolled in.
+ */
 function Card({ title, desc, icon: Icon, index }: CardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 60, filter: "blur(10px)" }}
-      animate={
-        inView
-          ? { opacity: 1, y: 0, filter: "blur(0px)" }
-          : { opacity: 0, y: 60, filter: "blur(10px)" }
-      }
-      transition={{
-        delay: index * 0.08,
-        duration: 0.9,
-        ease: [0.22, 0.8, 0.2, 1],
-      }}
-      className="group relative"
-    >
+    <div ref={ref} className="relative">
+      {/* Aura — appears just before the card to play the "birth" beat */}
       <motion.div
-        animate={{ y: [0, -6, 0] }}
+        aria-hidden
+        className="pointer-events-none absolute -inset-6 -z-10"
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={
+          inView
+            ? {
+                opacity: [0, 1, 0.6, 0],
+                scale: [0.5, 1.05, 1.15, 1.25],
+              }
+            : {}
+        }
         transition={{
-          duration: 5 + index * 0.4,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: index * 0.2,
+          delay: index * 0.08,
+          duration: 2.2,
+          ease: [0.22, 0.8, 0.2, 1],
+          times: [0, 0.35, 0.7, 1],
         }}
-        className="glass relative flex h-full flex-col gap-5 rounded-2xl p-7 transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-warm/30"
       >
-        {/* Halo on hover */}
         <div
-          className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          className="h-full w-full"
           style={{
             background:
-              "radial-gradient(400px circle at 50% 0%, rgba(255,184,107,0.18), transparent 60%)",
+              "radial-gradient(ellipse at 50% 0%, rgba(255,210,154,0.45), rgba(255,184,107,0.12) 35%, transparent 70%)",
+            filter: "blur(22px)",
           }}
         />
-        <div className="relative flex items-center justify-between">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-amber-warm transition-all duration-500 group-hover:border-amber-warm/40 group-hover:bg-amber-warm/10 group-hover:shadow-[0_0_30px_rgba(255,184,107,0.35)]">
-            <Icon />
-          </div>
-          <span className="font-display text-xs text-white/30">
-            0{index + 1}
-          </span>
-        </div>
-        <h3 className="font-display text-2xl text-white">{title}</h3>
-        <p className="text-sm font-light leading-relaxed text-white/60">
-          {desc}
-        </p>
-        <div className="mt-auto flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/40 transition-colors duration-500 group-hover:text-amber-warm">
-          Learn more
-          <span className="transition-transform duration-500 group-hover:translate-x-1">
-            →
-          </span>
-        </div>
       </motion.div>
-    </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 60, filter: "blur(12px)", scale: 0.96 }}
+        animate={
+          inView
+            ? { opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }
+            : { opacity: 0, y: 60, filter: "blur(12px)", scale: 0.96 }
+        }
+        transition={{
+          delay: 0.18 + index * 0.08,
+          duration: 1.0,
+          ease: [0.22, 0.8, 0.2, 1],
+        }}
+        className="group relative"
+      >
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{
+            duration: 5 + index * 0.4,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: index * 0.2,
+          }}
+          className="glass relative flex h-full flex-col gap-5 rounded-2xl p-7 transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-warm/30"
+        >
+          {/* Hover halo */}
+          <div
+            className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(400px circle at 50% 0%, rgba(255,184,107,0.18), transparent 60%)",
+            }}
+          />
+          <div className="relative flex items-center justify-between">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-amber-warm transition-all duration-500 group-hover:border-amber-warm/40 group-hover:bg-amber-warm/10 group-hover:shadow-[0_0_30px_rgba(255,184,107,0.35)]">
+              <Icon />
+            </div>
+            <span className="font-display text-xs text-white/30">
+              0{index + 1}
+            </span>
+          </div>
+          <h3 className="font-display text-2xl text-white">{title}</h3>
+          <p className="text-sm font-light leading-relaxed text-white/60">
+            {desc}
+          </p>
+          <div className="mt-auto flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/40 transition-colors duration-500 group-hover:text-amber-warm">
+            Learn more
+            <span className="transition-transform duration-500 group-hover:translate-x-1">
+              →
+            </span>
+          </div>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }
 
 /* --- icons --- */
-const baseIcon =
-  "h-5 w-5 stroke-current fill-none stroke-[1.4]";
+const baseIcon = "h-5 w-5 stroke-current fill-none stroke-[1.4]";
 
 function ModuleIcon() {
   return (
