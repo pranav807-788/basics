@@ -1967,6 +1967,32 @@
       }
     });
 
+    // Auto-open the door when section 5 enters the viewport,
+    // gently close it when the user scrolls back out. This makes
+    // the contact form feel like a room being entered, not a form
+    // being filled. Manual click/keyboard still toggles freely.
+    ScrollTrigger.create({
+      trigger: '#s5',
+      start: 'top 70%',
+      end: 'bottom 30%',
+      onEnter: () => openDoor(),
+      onEnterBack: () => openDoor(),
+      onLeave: () => closeDoor(),
+      onLeaveBack: () => closeDoor(),
+    });
+
+    // If the page is loaded with section 5 already on screen
+    // (deep-link to #s5, refresh, or short page), open after first
+    // paint so the user sees the cinematic arrival.
+    window.addEventListener('load', () => {
+      const s5 = document.getElementById('s5');
+      if (!s5) return;
+      const rect = s5.getBoundingClientRect();
+      const inView =
+        rect.top < window.innerHeight * 0.7 && rect.bottom > 0;
+      if (inView) setTimeout(openDoor, 700);
+    });
+
     /* ============================================================
        9) Door submit — playful knock feedback (door must be open)
        ============================================================ */
