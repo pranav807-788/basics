@@ -1,5 +1,6 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import WallText from "./WallText";
 
 const floaters = [
   {
@@ -39,18 +40,44 @@ const lines = [
   "We design backwards from that feeling.",
 ];
 
+/**
+ * BehindMagic
+ *
+ * The story-deepest section. Three things signal that we've arrived
+ * "behind the magic":
+ *
+ *   - The bulb dips lower than anywhere else on the page (handled in
+ *     BulbScene's stage map at p≈0.78), so the cone fully washes this
+ *     section.
+ *   - Multiple light beams crisscross the scene at different angles,
+ *     with their travel speeds tied to scroll progress.
+ *   - The headline lines emerge as projected text on the back wall.
+ *
+ * The kitchen-related floaters drift in 3D — small parallax differences
+ * between them sell the depth.
+ */
 export default function BehindMagic() {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
-  const beamY = useTransform(scrollYProgress, [0, 1], [-120, 200]);
+
+  // Three beams travelling at different speeds and from different sides.
+  const beam1Y = useTransform(scrollYProgress, [0, 1], [-160, 220]);
+  const beam2Y = useTransform(scrollYProgress, [0, 1], [240, -260]);
+  const beam3Y = useTransform(scrollYProgress, [0, 1], [-80, 160]);
+  const beam1Rot = useTransform(scrollYProgress, [0, 1], [4, -3]);
+  const beam2Rot = useTransform(scrollYProgress, [0, 1], [-6, 5]);
+  const beam3Rot = useTransform(scrollYProgress, [0, 1], [12, -8]);
   const beamOpacity = useTransform(
     scrollYProgress,
-    [0, 0.3, 0.7, 1],
+    [0, 0.25, 0.75, 1],
     [0, 1, 1, 0]
   );
+
+  // Camera-in feel — slight scale rises through the section
+  const camScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.04, 1]);
 
   return (
     <section
@@ -58,20 +85,41 @@ export default function BehindMagic() {
       ref={ref}
       className="relative isolate min-h-[140vh] overflow-hidden py-40"
     >
-      {/* Vertical light beams */}
+      {/* Crossing light beams. Each is a thin gradient strip, rotated and
+          translated by scroll, with a soft glow blur. The angles are
+          deliberately different so the section reads as "shafts of light
+          falling through". */}
       <motion.div
-        className="pointer-events-none absolute left-1/4 top-0 h-full w-[1px] beam"
-        style={{ y: beamY, opacity: beamOpacity }}
+        className="pointer-events-none absolute left-1/4 top-0 h-full w-[2px] beam"
+        style={{ y: beam1Y, rotate: beam1Rot, opacity: beamOpacity }}
       />
       <motion.div
-        className="pointer-events-none absolute right-1/3 top-0 h-full w-[1px] beam"
-        style={{ y: useTransform(scrollYProgress, [0, 1], [0, -260]), opacity: beamOpacity }}
+        className="pointer-events-none absolute right-1/3 top-0 h-full w-[2px] beam"
+        style={{ y: beam2Y, rotate: beam2Rot, opacity: beamOpacity }}
+      />
+      <motion.div
+        className="pointer-events-none absolute left-2/3 top-0 h-full w-[1px] beam"
+        style={{ y: beam3Y, rotate: beam3Rot, opacity: beamOpacity }}
       />
 
-      {/* Floating kitchen objects */}
-      {floaters.map((f, i) => (
-        <Floater key={i} {...f} progress={scrollYProgress} />
-      ))}
+      {/* Soft amber wash that sits behind the floaters and copy */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 40% at 50% 30%, rgba(255,184,107,0.08), transparent 60%)",
+        }}
+      />
+
+      {/* Floaters */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ scale: camScale }}
+      >
+        {floaters.map((f, i) => (
+          <Floater key={i} {...f} progress={scrollYProgress} />
+        ))}
+      </motion.div>
 
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-6 text-center">
         <motion.span
@@ -83,28 +131,21 @@ export default function BehindMagic() {
           Behind the magic
         </motion.span>
 
-        <h2 className="mt-8 font-display text-[clamp(2.4rem,6vw,6rem)] leading-[1.02] text-white">
+        {/* Each line is its own WallText so they emerge sequentially as if
+            being projected line by line. */}
+        <div className="mt-8 font-display text-[clamp(2.4rem,6vw,6rem)] leading-[1.02] text-white">
           {lines.map((l, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0, y: 50, filter: "blur(10px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{
-                delay: 0.05 + i * 0.18,
-                duration: 1.1,
-                ease: [0.22, 0.8, 0.2, 1],
-              }}
-              className="block"
-            >
-              {i === lines.length - 1 ? (
-                <span className="italic text-amber-warm">{l}</span>
-              ) : (
-                l
-              )}
-            </motion.span>
+            <div key={i} className="block">
+              <WallText
+                as="p"
+                text={l}
+                stagger={0.06}
+                accentLast={i === lines.length - 1}
+                className="block"
+              />
+            </div>
           ))}
-        </h2>
+        </div>
 
         <motion.p
           initial={{ opacity: 0, y: 24 }}
