@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.DS_Store
+Thumbs.db
+*.log
+dist/
+build/
+.vercel
+
+# Local Kiro spec drafts (not part of this site)
+.kiro/specs/

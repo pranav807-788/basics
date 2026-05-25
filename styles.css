@@ -1,0 +1,1082 @@
+/* =============================================================
+   The Magic Bulb — Custom Atmospheric Styles
+   Layout, lighting, materials and section artwork.
+   Tailwind handles micro utilities; this file owns the look.
+   ============================================================= */
+
+:root {
+  --ink: #06070a;
+  --ink-2: #0c0e13;
+  --paper: #e9e6df;
+  --paper-dim: #b6b1a4;
+  --ember: #ffae5b;
+  --ember-warm: #ff8a3d;
+  --gold: #f7d896;
+  --brass: #b08a4d;
+  --wood: #2a1c11;
+  --wood-2: #3a2614;
+  --wood-3: #4a3220;
+
+  --bulb-x: 28vw;
+  --bulb-y: 18vh;
+  --bulb-scale: 1;
+
+  /* Glow that follows the bulb (placed by JS) */
+  --glow-x: 28vw;
+  --glow-y: 18vh;
+  --glow-strength: 0.95;
+  --glow-radius: 38vmin;
+}
+
+/* =============================================================
+   GLOBAL RESETS / TYPE
+   ============================================================= */
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  background:
+    radial-gradient(1100px 700px at 80% -10%, rgba(40,28,18,0.35), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(20,14,10,0.6), transparent 60%),
+    var(--ink);
+  color: var(--paper);
+  overflow-x: hidden;
+  cursor: default;
+}
+
+::selection { background: var(--ember-warm); color: #1a0d05; }
+
+.eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+}
+
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(2.6rem, 6vw, 5.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+.section-title.centered { text-align: center; }
+.hero-italic { font-style: italic; color: var(--ember); }
+
+/* =============================================================
+   NAV
+   ============================================================= */
+.site-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 2rem;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(to bottom, rgba(6,7,10,0.7), rgba(6,7,10,0));
+  pointer-events: auto;
+}
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--paper);
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+.nav-brand-mark { color: var(--ember); }
+
+.nav-list {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0; padding: 0;
+}
+.nav-link {
+  color: var(--paper-dim);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  position: relative;
+  padding: 0.25rem 0;
+  transition: color 200ms ease;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 1px;
+  background: var(--ember);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 280ms ease;
+}
+.nav-link:hover, .nav-link.is-active {
+  color: var(--paper);
+}
+.nav-link:hover::after, .nav-link.is-active::after {
+  transform: scaleX(1);
+}
+@media (max-width: 820px) {
+  .nav-list { display: none; }
+}
+
+/* =============================================================
+   GLOBAL ATMOSPHERE — light cast that tracks the bulb
+   ============================================================= */
+.global-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(
+      var(--glow-radius) var(--glow-radius)
+      at var(--glow-x) var(--glow-y),
+      rgba(255, 200, 130, calc(0.42 * var(--glow-strength))) 0%,
+      rgba(255, 160, 80,  calc(0.18 * var(--glow-strength))) 28%,
+      rgba(180, 90,  30,  calc(0.06 * var(--glow-strength))) 55%,
+      transparent 75%
+    );
+  transition: background 60ms linear;
+}
+
+/* =============================================================
+   GLOBAL BULB — fixed SVG container, JS sets position
+   ============================================================= */
+.global-bulb {
+  position: fixed;
+  z-index: 30;
+  width: 240px;
+  height: 380px;
+  left: var(--bulb-x);
+  top: var(--bulb-y);
+  transform: translate(-50%, -50%) scale(var(--bulb-scale));
+  transform-origin: 50% 50%;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 22px 36px rgba(0,0,0,0.7))
+    drop-shadow(0 0 22px rgba(255,170,90,0.18));
+  will-change: transform, left, top;
+}
+.bulb-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* Filaments are dim by default (cold tungsten) and blaze when lit */
+.bulb-filament {
+  opacity: 0.42;
+  transition: opacity 320ms ease;
+}
+.bulb-state {
+  transition: opacity 200ms linear;
+}
+
+/* The hanging wire visible only while in section 1 */
+.bulb-wire {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 50px); /* connect just under the screw cap */
+  transform: translateX(-50%);
+  width: 2px;
+  height: 18vh;
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(120,100,80,0.7) 30%,
+    rgba(120,100,80,0.85) 100%
+  );
+  transform-origin: top center;
+  pointer-events: none;
+}
+
+/* When user can interact with the bulb (section 1), enable hover */
+body.bulb-hoverable .global-bulb { pointer-events: auto; cursor: pointer; }
+
+/* Lit state — drives ambient brightness AND filament blaze */
+body.bulb-lit { --glow-strength: 1.6; }
+body.bulb-lit .bulb-filament { opacity: 1; }
+/* From section 2 onward, the bulb is always "on" */
+body:not(.section-1-active) .bulb-filament { opacity: 1; }
+
+/* =============================================================
+   SECTION SHARED
+   ============================================================= */
+.story-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  padding: 0 2rem;
+  z-index: 5;
+  overflow: hidden;
+}
+
+/* =============================================================
+   SECTION 1 — CREATIVE ENTRY
+   ============================================================= */
+.section-hero { padding-top: 6rem; }
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 2rem;
+  min-height: calc(100vh - 6rem);
+  align-items: stretch;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.hero-left {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 4rem;
+}
+
+/* Rail at the top from which the bulb hangs */
+.hanging-rail {
+  position: absolute;
+  top: 0;
+  left: 18%;
+  width: 30%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, rgba(180,160,120,0.6) 30%, rgba(180,160,120,0.6) 70%, transparent);
+}
+
+/* Hover hot zone covering the bulb's section-1 location */
+.hero-hover-zone {
+  position: absolute;
+  top: 4vh;
+  left: 8%;
+  width: 30%;
+  height: 56vh;
+  z-index: 8;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Brand reveal — sits behind/over the bulb, lights up on hover */
+.brand-reveal {
+  position: absolute;
+  top: 22vh;
+  left: 8%;
+  width: 30%;
+  z-index: 6;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 500ms ease, transform 500ms ease;
+  text-align: center;
+  pointer-events: none;
+}
+.brand-mark svg { width: 100%; max-width: 320px; }
+.brand-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px;
+  letter-spacing: 0.3em;
+  fill: var(--gold);
+  filter: drop-shadow(0 0 14px rgba(255,180,100,0.7));
+}
+.brand-tag {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(247,216,150,0.75);
+}
+body.bulb-lit .brand-reveal { opacity: 1; transform: translateY(0); }
+
+.hero-copy { max-width: 520px; }
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 300;
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  color: var(--paper);
+  margin: 0 0 1.25rem;
+}
+.hero-sub {
+  font-size: 1rem;
+  color: var(--paper-dim);
+  max-width: 38ch;
+}
+.scroll-hint {
+  margin-top: 2.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+.scroll-line {
+  width: 64px; height: 1px; background: var(--paper-dim);
+  position: relative; overflow: hidden;
+}
+.scroll-line::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--ember);
+  transform: translateX(-100%);
+  animation: scrollLine 2.4s ease-in-out infinite;
+}
+@keyframes scrollLine {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* RIGHT — dot matrix canvas */
+.hero-right {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 50%, rgba(20,16,12,0.6), rgba(6,7,10,0.95));
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+}
+.dot-matrix {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+}
+.hero-perspective-corners .cnr {
+  position: absolute;
+  width: 22px; height: 22px;
+  border: 1px solid rgba(247,216,150,0.35);
+}
+.cnr-tl { top: 16px; left: 16px; border-right: 0; border-bottom: 0; }
+.cnr-tr { top: 16px; right: 16px; border-left: 0; border-bottom: 0; }
+.cnr-bl { bottom: 16px; left: 16px; border-right: 0; border-top: 0; }
+.cnr-br { bottom: 16px; right: 16px; border-left: 0; border-top: 0; }
+
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-right { min-height: 50vh; order: -1; }
+  .hanging-rail { left: 30%; }
+}
+
+/* =============================================================
+   SECTION 2 — BEHIND THE MAGIC
+   ============================================================= */
+.section-about {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  align-items: center;
+  gap: 2rem;
+  padding: 8rem 4rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.virtual-wall {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(60,42,28,0.18), rgba(20,14,10,0.45)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(40,28,18,0) 0px,
+      rgba(40,28,18,0) 60px,
+      rgba(70,52,34,0.06) 60px,
+      rgba(70,52,34,0.06) 61px
+    );
+  z-index: 0;
+}
+.wall-seam {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(120,90,60,0.3), transparent);
+}
+.wall-seam-l { left: 22%; }
+.wall-seam-r { left: 78%; }
+
+.light-cone {
+  position: absolute;
+  top: 30%;
+  left: 20%;
+  width: 70vw;
+  height: 60vh;
+  background:
+    radial-gradient(closest-side at 0% 50%,
+      rgba(255,200,130,0.18),
+      rgba(255,160,80,0.06) 50%,
+      transparent 80%);
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(4px);
+}
+
+.about-content {
+  grid-column: 2 / 3;
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+  padding-left: 4rem;
+}
+.about-body {
+  margin-top: 1.6rem;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--paper-dim);
+}
+.about-stats {
+  list-style: none;
+  margin: 2.6rem 0 0;
+  padding: 0;
+  display: flex;
+  gap: 2.4rem;
+}
+.about-stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.25rem;
+  color: var(--gold);
+}
+.stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+@media (max-width: 900px) {
+  .section-about { grid-template-columns: 1fr; padding: 6rem 1.5rem; }
+  .about-content { grid-column: 1; padding-left: 0; padding-top: 60vh; }
+}
+
+/* =============================================================
+   SECTION 3 — OUR PLAYGROUND
+   ============================================================= */
+.section-services {
+  padding: 8rem 2rem 6rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.services-header {
+  text-align: center;
+  margin-bottom: 6rem;
+  padding-top: 18vh; /* leave room for the central core light overhead */
+}
+.cupboard-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.cupboard {
+  position: relative;
+  height: 360px;
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, #1a130b 0%, #0d0907 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(247,216,150,0.08),
+    0 25px 60px -20px rgba(0,0,0,0.7);
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+}
+.cupboard-door {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #2a1c11 0%, #1a110a 100%),
+    repeating-linear-gradient(0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 30px,
+      rgba(0,0,0,0.2) 30px,
+      rgba(0,0,0,0.2) 31px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2rem;
+  transition: transform 700ms cubic-bezier(0.65, 0.0, 0.2, 1);
+  transform-origin: left center;
+  box-shadow: inset -16px 0 30px -16px rgba(0,0,0,0.7);
+  z-index: 2;
+}
+.cupboard-handle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 6px;
+  height: 28px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #b08a4d, #5a4427);
+  transform: translateY(-50%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+.cupboard-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+}
+.cupboard-sub {
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(247,216,150,0.55);
+  margin-top: 0.2rem;
+}
+.cupboard-interior {
+  position: absolute;
+  inset: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(255,180,90,0.04), transparent 60%),
+    linear-gradient(180deg, #110b07 0%, #060403 100%);
+  color: var(--paper);
+  z-index: 1;
+}
+.cupboard-interior h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 2rem;
+  color: var(--ember);
+  margin: 0 0 0.5rem;
+}
+.cupboard-interior p {
+  color: var(--paper-dim);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+}
+.cupboard-interior ul {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 0.35rem;
+}
+.cupboard-interior ul li {
+  font-size: 0.82rem;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  border-top: 1px solid rgba(247,216,150,0.12);
+  padding-top: 0.35rem;
+}
+
+/* hover/focus = open the door */
+.cupboard:hover .cupboard-door,
+.cupboard:focus .cupboard-door,
+.cupboard.is-open .cupboard-door {
+  transform: perspective(1200px) rotateY(-78deg);
+  box-shadow: inset -16px 0 30px -16px rgba(0,0,0,0.9), 30px 10px 30px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 900px) {
+  .cupboard-row { grid-template-columns: 1fr; }
+  .services-header { padding-top: 60vh; }
+}
+
+/* =============================================================
+   SECTION 4 — MADE WITH MAGIC
+   ============================================================= */
+.section-portfolio {
+  padding: 6rem 0 8rem;
+  position: relative;
+}
+.desk-surface {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 60vh;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(20,12,6,0.85) 60%, rgba(20,12,6,1) 100%),
+    repeating-linear-gradient(95deg,
+      #2a1c11 0px,
+      #2a1c11 6px,
+      #34221a 6px,
+      #34221a 7px);
+  filter: brightness(0.85);
+  z-index: 0;
+}
+.lamp-cone {
+  position: absolute;
+  right: 2vw;
+  top: 22vh;
+  width: 55vw;
+  height: 70vh;
+  background:
+    radial-gradient(closest-side at 100% 0%,
+      rgba(255,200,120,0.28),
+      rgba(255,160,80,0.08) 45%,
+      transparent 75%);
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.portfolio-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 2rem;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+.portfolio-header { padding-left: 2rem; }
+.portfolio-sub {
+  margin-top: 1.4rem;
+  color: var(--paper-dim);
+  max-width: 36ch;
+}
+
+/* Tablet device */
+.tablet {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 11;
+  margin: 0 auto;
+  perspective: 1400px;
+}
+.tablet-bezel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #1a1a1d, #0a0a0c);
+  box-shadow:
+    0 40px 80px -20px rgba(0,0,0,0.8),
+    inset 0 0 0 1px rgba(247,216,150,0.06),
+    inset 0 0 24px rgba(0,0,0,0.6);
+  padding: 14px;
+  transform: rotateX(8deg) rotateY(-6deg);
+  transform-style: preserve-3d;
+}
+.tablet-camera {
+  position: absolute;
+  top: 6px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #2a2a2e;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.8);
+}
+.tablet-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: #050608;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+.tablet-track {
+  display: flex;
+  gap: 18px;
+  padding: 18px;
+  height: 100%;
+  align-items: stretch;
+  width: max-content;
+  will-change: transform;
+}
+.project-card {
+  flex: 0 0 auto;
+  width: 280px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0e1117, #08090c);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.project-thumb {
+  flex: 1 1 auto;
+  background: var(--accent);
+  position: relative;
+  filter: saturate(0.85);
+}
+.project-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+.project-thumb[data-bg="grid"]::after {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.project-thumb[data-bg="dots"]::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.25) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+.project-thumb[data-bg="lines"]::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0 1px, transparent 1px 12px);
+}
+.project-thumb[data-bg="rings"]::after {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle at 30% 70%, transparent 0 26px, rgba(255,255,255,0.18) 26px 27px, transparent 27px),
+    radial-gradient(circle at 70% 30%, transparent 0 18px, rgba(255,255,255,0.18) 18px 19px, transparent 19px);
+}
+.project-meta {
+  padding: 0.85rem 1rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.project-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  color: var(--paper);
+}
+.project-tag {
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+/* Glare reflection that shifts with mouse */
+.tablet-glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    rgba(255,255,255,0) 35%,
+    rgba(255,255,255,0.10) 48%,
+    rgba(255,255,255,0.02) 60%);
+  pointer-events: none;
+  transform: translateX(0);
+  transition: transform 200ms ease;
+}
+.tablet-shadow {
+  position: absolute;
+  left: 4%; right: 4%; bottom: -22px;
+  height: 40px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.6), transparent 70%);
+  filter: blur(4px);
+  z-index: -1;
+}
+
+@media (max-width: 1000px) {
+  .portfolio-grid { grid-template-columns: 1fr; }
+  .portfolio-header { padding-left: 0; text-align: center; margin: 0 auto; }
+}
+
+/* =============================================================
+   SECTION 5 — KNOCK ON OUR DOOR
+   ============================================================= */
+.section-contact {
+  padding: 8rem 2rem 4rem;
+  background: radial-gradient(80vmax 60vmax at 18% 22%, rgba(40,28,18,0.4), transparent 60%), #04040a;
+  min-height: 110vh;
+}
+.room-floor {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 25vh;
+  background:
+    linear-gradient(180deg, transparent, rgba(0,0,0,0.7) 70%, #000),
+    repeating-linear-gradient(95deg,
+      #1a120c 0px, #1a120c 30px,
+      #221610 30px, #221610 31px);
+  filter: brightness(0.75);
+}
+.room-shadow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(closest-side at 18% 24%, rgba(255,200,140,0.15), transparent 60%);
+  pointer-events: none;
+}
+
+.contact-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 3rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  align-items: center;
+  z-index: 2;
+  min-height: 80vh;
+}
+.contact-prompt {
+  padding-top: 4rem;
+  max-width: 380px;
+}
+.prompt-body {
+  margin-top: 1rem;
+  color: var(--paper-dim);
+  font-size: 1rem;
+}
+
+/* Door stage — 3D perspective */
+.door-stage {
+  position: relative;
+  perspective: 1600px;
+  perspective-origin: 50% 50%;
+  height: 78vh;
+  min-height: 560px;
+}
+.door-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, #1a1108 0%, #0a0604 100%);
+  box-shadow:
+    inset 0 0 0 6px #2a1a0d,
+    inset 0 0 0 8px rgba(0,0,0,0.6),
+    0 30px 60px rgba(0,0,0,0.7);
+  transform-style: preserve-3d;
+  overflow: hidden;
+}
+
+.door {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  background:
+    linear-gradient(180deg, #3a2614 0%, #2a1a0d 100%);
+  transform-style: preserve-3d;
+  transition: box-shadow 600ms ease;
+  cursor: pointer;
+}
+.door-left {
+  left: 0;
+  transform-origin: left center;
+  border-right: 1px solid #1a0e06;
+  box-shadow: inset -12px 0 30px -10px rgba(0,0,0,0.7);
+}
+.door-right {
+  right: 0;
+  transform-origin: right center;
+  border-left: 1px solid #1a0e06;
+  box-shadow: inset 12px 0 30px -10px rgba(0,0,0,0.7);
+}
+
+/* Wood grain overlay */
+.door-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 40px,
+      rgba(0,0,0,0.18) 41px,
+      rgba(0,0,0,0) 42px),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 8px,
+      rgba(0,0,0,0.08) 9px),
+    radial-gradient(120% 60% at 50% 0%, rgba(255,180,100,0.06), transparent 60%);
+  mix-blend-mode: multiply;
+  opacity: 0.85;
+}
+
+/* Three classic recessed panels per door */
+.door-panels {
+  position: absolute;
+  inset: 8% 12%;
+  display: flex;
+  flex-direction: column;
+  gap: 6%;
+}
+.door-panel {
+  flex: 1 1 0;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, #2a1a0d 0%, #1a0e06 100%);
+  box-shadow:
+    inset 0 0 0 1px #4a3220,
+    inset 0 0 0 4px rgba(0,0,0,0.4),
+    inset 4px 4px 12px rgba(0,0,0,0.6),
+    inset -2px -2px 8px rgba(255,180,100,0.05);
+}
+
+/* Brass handle on the right door */
+.door-handle {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  transform: translateY(-50%);
+  width: 14px; height: 60px;
+  border: 0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #d8b06e, #8a6633);
+  box-shadow: 0 0 0 1px #4a3220, 0 4px 10px rgba(0,0,0,0.6),
+    inset 0 0 6px rgba(255,220,160,0.6);
+  cursor: pointer;
+  z-index: 3;
+  transition: filter 200ms ease, transform 200ms ease;
+}
+.door-handle:hover { filter: brightness(1.2); transform: translateY(-50%) scale(1.05); }
+.door-handle:focus { outline: 2px solid var(--ember); outline-offset: 4px; }
+
+/* Inner chamber behind the doors */
+.inner-chamber {
+  position: absolute;
+  inset: 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 80% at 50% 50%, rgba(255,180,100,0.06), transparent 70%),
+    linear-gradient(180deg, #0a0806 0%, #020202 100%);
+  border-radius: 4px;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.9);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.contact-form {
+  width: min(420px, 100%);
+  padding: 2rem 2.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+.contact-form h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: var(--gold);
+  margin: 0 0 0.4rem;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+.field {
+  position: relative;
+  padding-top: 1.2rem;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  color: var(--paper);
+  font-size: 0.95rem;
+  font-family: inherit;
+  padding: 0.4rem 0;
+  outline: none;
+  resize: none;
+}
+.field label {
+  position: absolute;
+  left: 0;
+  bottom: 0.45rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  pointer-events: none;
+  transition: transform 220ms ease, color 220ms ease, font-size 220ms ease;
+}
+.field input:focus + label,
+.field textarea:focus + label,
+.field input:not(:placeholder-shown) + label,
+.field textarea:not(:placeholder-shown) + label,
+.field input:valid + label,
+.field textarea:valid + label {
+  transform: translateY(-1.4rem);
+  color: var(--ember);
+  font-size: 0.65rem;
+}
+/* Glowing back-lit underline */
+.field-line {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(247,216,150,0.2),
+    rgba(247,216,150,0.4),
+    rgba(247,216,150,0.2));
+}
+.field-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ember);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 320ms ease;
+  box-shadow: 0 0 14px var(--ember-warm), 0 0 22px rgba(255,138,61,0.4);
+}
+.field input:focus ~ .field-line::after,
+.field textarea:focus ~ .field-line::after {
+  transform: scaleX(1);
+  animation: pulseLine 2.2s ease-in-out infinite;
+}
+@keyframes pulseLine {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+
+.contact-submit {
+  margin-top: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(247,216,150,0.4);
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 220ms ease, color 220ms ease, border-color 220ms ease;
+}
+.contact-submit:hover {
+  background: var(--ember);
+  color: #1a0d05;
+  border-color: var(--ember);
+}
+
+/* When the doors are open, the chamber accepts pointer events */
+body.door-open .inner-chamber {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 700ms ease 500ms;
+}
+
+/* footer */
+.site-footer {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 3;
+}
+.dot-sep { color: var(--ember); }
+
+@media (max-width: 900px) {
+  .contact-stage { grid-template-columns: 1fr; gap: 1.5rem; }
+  .door-stage { height: 80vh; }
+}
+
+/* =============================================================
+   ACCESSIBILITY — reduced motion
+   ============================================================= */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  .global-bulb { transition: none !important; }
+}

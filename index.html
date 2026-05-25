@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Magic Bulb — A Storytelling Scroll Experience</title>
+  <meta name="description" content="A cinematic, scroll-driven journey of a single light bulb through five worlds." />
+
+  <!-- Tailwind (Play CDN, utilities only) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500;700&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-[#06070a] text-[#e9e6df] antialiased overflow-x-hidden">
+  <!-- ============================================================
+       NAV — storytelling vocabulary, fixed at top
+       ============================================================ -->
+  <nav class="site-nav" aria-label="Primary">
+    <a class="nav-brand" href="#section-1" aria-label="Magicraft home">
+      <span class="nav-brand-mark">✺</span>
+      <span class="nav-brand-word">Magicraft</span>
+    </a>
+    <ul class="nav-list">
+      <li><a class="nav-link is-active" href="#section-1" data-nav="1">Creative Entry</a></li>
+      <li><a class="nav-link" href="#section-2" data-nav="2">Behind the Magic</a></li>
+      <li><a class="nav-link" href="#section-3" data-nav="3">Our Playground</a></li>
+      <li><a class="nav-link" href="#section-4" data-nav="4">Made with Magic</a></li>
+      <li><a class="nav-link" href="#section-5" data-nav="5">Knock on Our Door</a></li>
+    </ul>
+  </nav>
+
+  <!-- ============================================================
+       GLOBAL ATMOSPHERE — radial light cast that follows the bulb
+       ============================================================ -->
+  <div class="global-glow" id="globalGlow" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       GLOBAL BULB — single fixed SVG, five state-groups crossfade
+       Position is driven by GSAP via inline left/top/transform.
+       ============================================================ -->
+  <div class="global-bulb" id="globalBulb" aria-hidden="true">
+    <!-- Wire that disconnects after section 1 -->
+    <div class="bulb-wire" id="bulbWire"></div>
+
+    <svg
+      class="bulb-svg"
+      viewBox="0 0 220 360"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <!-- ============================================================
+             SHARED GRADIENTS / FILTERS — premium glass, brass, glow
+             ============================================================ -->
+
+        <!-- Glass envelope: bright top highlight, warm body, soft rim shadow -->
+        <radialGradient id="glassGrad" cx="42%" cy="36%" r="68%">
+          <stop offset="0%"   stop-color="#fffaee" stop-opacity="0.95" />
+          <stop offset="22%"  stop-color="#ffe6b3" stop-opacity="0.78" />
+          <stop offset="55%"  stop-color="#ffb968" stop-opacity="0.45" />
+          <stop offset="85%"  stop-color="#5a3818" stop-opacity="0.18" />
+          <stop offset="100%" stop-color="#1a0d05" stop-opacity="0.0"  />
+        </radialGradient>
+
+        <!-- Subtle blue-cool rim refraction on the glass edge -->
+        <radialGradient id="glassRim" cx="50%" cy="50%" r="55%">
+          <stop offset="80%"  stop-color="#ffffff" stop-opacity="0" />
+          <stop offset="96%"  stop-color="#bcd6ff" stop-opacity="0.18" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.35" />
+        </radialGradient>
+
+        <!-- Specular streak on glass -->
+        <linearGradient id="glassHighlight" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.0" />
+          <stop offset="35%"  stop-color="#ffffff" stop-opacity="0.55" />
+          <stop offset="55%"  stop-color="#ffffff" stop-opacity="0.0" />
+        </linearGradient>
+
+        <!-- Tungsten filament: bright white core, warm orange edges -->
+        <linearGradient id="filamentGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stop-color="#ffffff" />
+          <stop offset="35%" stop-color="#fff3c2" />
+          <stop offset="75%" stop-color="#ffaa55" />
+          <stop offset="100%" stop-color="#ff7a1a" />
+        </linearGradient>
+
+        <!-- Brushed brass / metal -->
+        <linearGradient id="brassGrad" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%"   stop-color="#3b2a16" />
+          <stop offset="15%"  stop-color="#a07a3e" />
+          <stop offset="40%"  stop-color="#e8c479" />
+          <stop offset="55%"  stop-color="#b88a44" />
+          <stop offset="80%"  stop-color="#5a3f1d" />
+          <stop offset="100%" stop-color="#2a1c0c" />
+        </linearGradient>
+
+        <!-- Polished steel / nickel -->
+        <linearGradient id="steelGrad" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%"   stop-color="#1a1c20" />
+          <stop offset="25%"  stop-color="#5e6470" />
+          <stop offset="50%"  stop-color="#c0c5cc" />
+          <stop offset="75%"  stop-color="#5e6470" />
+          <stop offset="100%" stop-color="#15171a" />
+        </linearGradient>
+
+        <!-- Threads pattern for Edison screw cap -->
+        <pattern id="threads" x="0" y="0" width="4" height="6" patternUnits="userSpaceOnUse">
+          <rect width="4" height="6" fill="url(#brassGrad)" />
+          <path d="M0 4 L 4 0" stroke="#1a0d05" stroke-width="1.2" opacity="0.5" />
+          <path d="M0 5 L 4 1" stroke="#fff2cc" stroke-width="0.5" opacity="0.35" />
+        </pattern>
+
+        <!-- Soft halo around hot filament -->
+        <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="3.5" result="b1" />
+          <feGaussianBlur stdDeviation="9"   in="SourceGraphic" result="b2" />
+          <feMerge>
+            <feMergeNode in="b2" />
+            <feMergeNode in="b1" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <!-- Bigger atmospheric bloom around the whole envelope -->
+        <filter id="bigBloom" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="14" />
+        </filter>
+
+        <!-- Inner shadow for glass envelopes -->
+        <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+          <feOffset in="blur" dx="0" dy="2" result="offset" />
+          <feFlood flood-color="#1a0d05" flood-opacity="0.5" />
+          <feComposite in2="offset" operator="in" />
+          <feComposite in2="SourceGraphic" operator="over" />
+        </filter>
+
+        <!-- Reusable Edison cap (used by hanging + table lamp peek) -->
+        <symbol id="edisonCap" viewBox="0 0 60 50">
+          <!-- collar transition -->
+          <path d="M2 4 Q 30 -4 58 4 L 56 8 Q 30 2 4 8 Z" fill="url(#brassGrad)" />
+          <!-- threaded body -->
+          <rect x="6" y="8"  width="48" height="26" fill="url(#threads)" />
+          <!-- specular streak -->
+          <rect x="6" y="8"  width="48" height="3"  fill="#fff2cc" opacity="0.35" />
+          <!-- insulator -->
+          <path d="M14 34 L 46 34 L 42 44 L 18 44 Z" fill="#0c0c0e" />
+          <ellipse cx="30" cy="44" rx="6" ry="2" fill="#1a1a1c" />
+        </symbol>
+      </defs>
+
+      <!-- ============================================================
+           STATE 1 — HANGING EDISON BULB (Section 1)
+           A4-shape envelope, threaded brass cap, hairpin tungsten coil.
+           ============================================================ -->
+      <g class="bulb-state" data-state="hanging">
+        <!-- soft outer bloom behind the glass -->
+        <ellipse cx="110" cy="170" rx="72" ry="86"
+          fill="rgba(255,180,90,0.18)" filter="url(#bigBloom)"
+          class="bulb-filament" />
+
+        <!-- Edison cap -->
+        <use href="#edisonCap" x="80" y="32" width="60" height="50" />
+
+        <!-- glass body (classic A19 silhouette) -->
+        <path
+          d="M78 90
+             C 72 110, 66 130, 70 152
+             C 74 188, 88 220, 110 235
+             C 132 220, 146 188, 150 152
+             C 154 130, 148 110, 142 90
+             Z"
+          fill="url(#glassGrad)"
+          stroke="rgba(255,225,170,0.45)"
+          stroke-width="1"
+        />
+        <!-- rim refraction -->
+        <path
+          d="M78 90
+             C 72 110, 66 130, 70 152
+             C 74 188, 88 220, 110 235
+             C 132 220, 146 188, 150 152
+             C 154 130, 148 110, 142 90
+             Z"
+          fill="url(#glassRim)"
+          opacity="0.9"
+        />
+        <!-- specular highlight streak -->
+        <path
+          d="M84 105 Q 80 140 92 175"
+          fill="none"
+          stroke="url(#glassHighlight)"
+          stroke-width="6"
+          stroke-linecap="round"
+        />
+        <!-- small dot highlight -->
+        <ellipse cx="92" cy="118" rx="5" ry="9"
+          fill="#ffffff" opacity="0.55" />
+
+        <!-- filament support stem (glass mount) -->
+        <path d="M110 90 L 110 152" stroke="#3a2a14" stroke-width="2" />
+        <ellipse cx="110" cy="90" rx="8" ry="3" fill="#1a1108" />
+
+        <!-- Tungsten hairpin coil filament -->
+        <g class="bulb-filament" filter="url(#softGlow)">
+          <!-- support wires -->
+          <path d="M104 92 L 100 130" stroke="#3a2a14"
+            stroke-width="0.8" fill="none" />
+          <path d="M116 92 L 120 130" stroke="#3a2a14"
+            stroke-width="0.8" fill="none" />
+          <!-- glowing coil — two coiled limbs joined at top -->
+          <path
+            d="M100 130
+               q 0 -6 4 -6 q 4 0 4 6
+               q 0 -6 4 -6 q 4 0 4 6
+               q 0 -6 4 -6 q 4 0 4 6
+               M100 130 L 100 152
+               M120 130 L 120 152"
+            fill="none"
+            stroke="url(#filamentGrad)"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
+          <!-- white-hot core -->
+          <path
+            d="M100 110 q 10 -6 20 0"
+            stroke="#ffffff" stroke-width="1.4"
+            stroke-linecap="round" fill="none" opacity="0.9"
+          />
+        </g>
+      </g>
+
+      <!-- ============================================================
+           STATE 2 — WALL SCONCE (Section 2)
+           Tapered conical shade, brass arm, mounted plate.
+           ============================================================ -->
+      <g class="bulb-state" data-state="wall" opacity="0">
+        <!-- soft bloom behind the shade -->
+        <ellipse cx="150" cy="170" rx="68" ry="50"
+          fill="rgba(255,180,90,0.16)" filter="url(#bigBloom)"
+          class="bulb-filament" />
+
+        <!-- mounting plate against the wall -->
+        <rect x="6" y="118" width="22" height="86" rx="3"
+          fill="url(#brassGrad)" />
+        <rect x="10" y="122" width="14" height="78" rx="2"
+          fill="rgba(0,0,0,0.35)" />
+        <!-- screws -->
+        <circle cx="17" cy="128" r="1.6" fill="#1a0d05" />
+        <circle cx="17" cy="194" r="1.6" fill="#1a0d05" />
+
+        <!-- swing arm -->
+        <path d="M28 161 L 96 161" stroke="url(#brassGrad)"
+          stroke-width="7" stroke-linecap="round" />
+        <path d="M28 159 L 96 159" stroke="#fff2cc"
+          stroke-width="1" stroke-linecap="round" opacity="0.4" />
+        <!-- pivot joint -->
+        <circle cx="32" cy="161" r="6" fill="url(#brassGrad)" />
+        <circle cx="32" cy="161" r="2.4" fill="#1a0d05" />
+        <!-- shade fitter -->
+        <rect x="92" y="148" width="10" height="26" rx="2" fill="url(#brassGrad)" />
+
+        <!-- conical shade (back side darker) -->
+        <path
+          d="M102 132 L 198 122 L 188 208 L 112 198 Z"
+          fill="url(#brassGrad)"
+          stroke="#1a1108" stroke-width="0.8"
+        />
+        <!-- inner shade (lit interior) -->
+        <path
+          d="M104 134 L 196 124 L 186 206 L 114 196 Z"
+          fill="url(#glassGrad)" opacity="0.7"
+        />
+        <!-- top trim ring -->
+        <ellipse cx="103" cy="133" rx="6" ry="14"
+          fill="#1a1108" stroke="url(#brassGrad)" stroke-width="1" />
+        <!-- bottom trim ring -->
+        <ellipse cx="187" cy="207" rx="9" ry="3"
+          fill="#1a1108" stroke="url(#brassGrad)" stroke-width="1" />
+
+        <!-- bulb tip peeking from the shade -->
+        <ellipse cx="180" cy="200" rx="14" ry="9"
+          fill="url(#glassGrad)" filter="url(#softGlow)" class="bulb-filament" />
+
+        <!-- bright filament inside -->
+        <g class="bulb-filament" filter="url(#softGlow)">
+          <ellipse cx="156" cy="165" rx="22" ry="12"
+            fill="none" stroke="url(#filamentGrad)" stroke-width="1.6" />
+          <ellipse cx="156" cy="165" rx="14" ry="7"
+            fill="none" stroke="#fff2cc" stroke-width="1.2" opacity="0.85" />
+          <ellipse cx="156" cy="165" rx="6" ry="3"
+            fill="#ffffff" opacity="0.95" />
+        </g>
+      </g>
+
+      <!-- ============================================================
+           STATE 3 — SURREAL EYE-CORE (Section 3)
+           Iris-like core, radiating filament tendrils, layered halos.
+           ============================================================ -->
+      <g class="bulb-state" data-state="core" opacity="0">
+        <!-- atmospheric bloom -->
+        <circle cx="110" cy="170" r="100"
+          fill="rgba(255,180,90,0.18)" filter="url(#bigBloom)"
+          class="bulb-filament" />
+
+        <!-- thin orbit rings -->
+        <ellipse cx="110" cy="170" rx="96" ry="56"
+          fill="none" stroke="rgba(247,216,150,0.18)" stroke-width="0.8" />
+        <ellipse cx="110" cy="170" rx="78" ry="42"
+          fill="none" stroke="rgba(247,216,150,0.22)" stroke-width="0.8" />
+        <ellipse cx="110" cy="170" rx="60" ry="30"
+          fill="none" stroke="rgba(247,216,150,0.28)" stroke-width="0.8" />
+
+        <!-- iris (eye sclera) -->
+        <ellipse cx="110" cy="170" rx="58" ry="36"
+          fill="url(#glassGrad)" />
+        <ellipse cx="110" cy="170" rx="58" ry="36"
+          fill="url(#glassRim)" />
+
+        <!-- pupil shadow ring -->
+        <circle cx="110" cy="170" r="22" fill="#1a0d05" />
+        <!-- glowing pupil core -->
+        <g class="bulb-filament" filter="url(#softGlow)">
+          <circle cx="110" cy="170" r="20" fill="url(#filamentGrad)" />
+          <circle cx="110" cy="170" r="11" fill="#fff8d8" />
+          <circle cx="106" cy="166" r="4" fill="#ffffff" />
+        </g>
+
+        <!-- filament tendrils radiating out -->
+        <g class="bulb-filament" filter="url(#softGlow)"
+           stroke="url(#filamentGrad)" stroke-width="1.4"
+           fill="none" stroke-linecap="round">
+          <path d="M 110 170 Q 70 130 26 138" />
+          <path d="M 110 170 Q 70 210 26 210" />
+          <path d="M 110 170 Q 150 130 194 138" />
+          <path d="M 110 170 Q 150 210 194 210" />
+          <path d="M 110 170 Q 110 110 102 76"  />
+          <path d="M 110 170 Q 110 230 118 264" />
+          <path d="M 110 170 Q 80 152 50 92"   />
+          <path d="M 110 170 Q 140 152 170 92" />
+          <path d="M 110 170 Q 80 188 50 248"  />
+          <path d="M 110 170 Q 140 188 170 248" />
+        </g>
+
+        <!-- iris hairlines (eye texture) -->
+        <g stroke="rgba(255,200,130,0.5)" stroke-width="0.5" fill="none" opacity="0.7">
+          <path d="M110 170 L 76 152" />
+          <path d="M110 170 L 144 152" />
+          <path d="M110 170 L 76 188" />
+          <path d="M110 170 L 144 188" />
+          <path d="M110 170 L 110 138" />
+          <path d="M110 170 L 110 202" />
+        </g>
+      </g>
+
+      <!-- ============================================================
+           STATE 4 — TABLE LAMP (Section 4)
+           Banker-style metal shade, slim brass neck, weighted base.
+           ============================================================ -->
+      <g class="bulb-state" data-state="table" opacity="0">
+        <!-- bloom under the shade -->
+        <ellipse cx="110" cy="220" rx="60" ry="22"
+          fill="rgba(255,180,90,0.22)" filter="url(#bigBloom)"
+          class="bulb-filament" />
+
+        <!-- floor shadow -->
+        <ellipse cx="110" cy="312" rx="72" ry="6" fill="rgba(0,0,0,0.55)" />
+
+        <!-- weighted base -->
+        <ellipse cx="110" cy="306" rx="56" ry="9" fill="#0a0a0c" />
+        <path d="M64 306 Q 110 270 156 306 Z" fill="url(#brassGrad)" />
+        <path d="M70 304 Q 110 278 150 304" fill="none"
+          stroke="#fff2cc" stroke-width="0.8" opacity="0.45" />
+        <!-- base trim ring -->
+        <ellipse cx="110" cy="278" rx="20" ry="3" fill="url(#brassGrad)" />
+
+        <!-- slim neck -->
+        <rect x="106" y="220" width="8" height="58" fill="url(#brassGrad)" />
+        <rect x="108" y="220" width="1.2" height="58" fill="#fff2cc" opacity="0.5" />
+        <!-- neck collar -->
+        <rect x="100" y="216" width="20" height="8" rx="1" fill="url(#brassGrad)" />
+
+        <!-- shade (trapezoidal, with subtle taper) -->
+        <path
+          d="M52 130
+             Q 110 122 168 130
+             L 150 218
+             Q 110 224 70 218 Z"
+          fill="url(#brassGrad)"
+          stroke="#1a1108" stroke-width="0.8"
+        />
+        <!-- inner-shade lit underside hint -->
+        <path
+          d="M64 214 Q 110 220 156 214
+             L 150 218 Q 110 224 70 218 Z"
+          fill="url(#glassGrad)" opacity="0.6"
+        />
+        <!-- top vent ring -->
+        <ellipse cx="110" cy="129" rx="58" ry="6"
+          fill="#1a1108" />
+        <ellipse cx="110" cy="129" rx="58" ry="6"
+          fill="none" stroke="url(#brassGrad)" stroke-width="1.4" />
+        <!-- shade horizontal trim line -->
+        <path d="M58 168 Q 110 174 162 168" fill="none"
+          stroke="#fff2cc" stroke-width="0.7" opacity="0.35" />
+
+        <!-- bulb under shade peeking down -->
+        <use href="#edisonCap" x="92" y="200" width="36" height="30" />
+        <ellipse cx="110" cy="244" rx="22" ry="14"
+          fill="url(#glassGrad)" filter="url(#softGlow)" class="bulb-filament" />
+
+        <!-- filament -->
+        <g class="bulb-filament" filter="url(#softGlow)">
+          <path d="M99 244 q 11 -10 22 0"
+            stroke="url(#filamentGrad)" stroke-width="2"
+            fill="none" stroke-linecap="round" />
+          <ellipse cx="110" cy="241" rx="5" ry="2"
+            fill="#ffffff" opacity="0.9" />
+        </g>
+      </g>
+
+      <!-- ============================================================
+           STATE 5 — VINTAGE CAGE LANTERN (Section 5)
+           Brass cage, hanging chain, carbon-spiral filament inside.
+           ============================================================ -->
+      <g class="bulb-state" data-state="lantern" opacity="0">
+        <!-- bloom -->
+        <ellipse cx="110" cy="170" rx="42" ry="60"
+          fill="rgba(255,160,70,0.22)" filter="url(#bigBloom)"
+          class="bulb-filament" />
+
+        <!-- hanging chain -->
+        <g stroke="#7a6849" stroke-width="1.6" fill="none">
+          <circle cx="110" cy="20" r="3"  fill="#7a6849" />
+          <path d="M110 24 v 8" />
+          <path d="M110 32 v 8" />
+          <path d="M110 40 v 8" />
+          <path d="M110 48 v 6" />
+        </g>
+        <!-- crown / hanger plate -->
+        <path d="M88 56 L 132 56 L 138 70 L 82 70 Z"
+          fill="url(#brassGrad)" />
+        <ellipse cx="110" cy="56" rx="22" ry="3" fill="#1a1108" />
+        <!-- decorative rivets -->
+        <circle cx="92"  cy="63" r="1.2" fill="#1a0d05" />
+        <circle cx="128" cy="63" r="1.2" fill="#1a0d05" />
+
+        <!-- top brass ring -->
+        <rect x="78" y="70" width="64" height="6" fill="url(#brassGrad)" />
+        <rect x="78" y="76" width="64" height="2" fill="#1a1108" />
+
+        <!-- 6-rib cage (vertical bars + horizontal bands) -->
+        <g stroke="url(#brassGrad)" stroke-width="2" fill="none" stroke-linecap="round">
+          <!-- vertical bars curving slightly outward then back -->
+          <path d="M82 78  C 76 130, 76 200, 82 240" />
+          <path d="M138 78 C 144 130, 144 200, 138 240" />
+          <path d="M96 78  C 94 130, 94 200, 96 240"   />
+          <path d="M124 78 C 126 130, 126 200, 124 240" />
+          <path d="M110 78 v 162" />
+        </g>
+        <!-- horizontal bands -->
+        <ellipse cx="110" cy="120" rx="32" ry="4"
+          fill="none" stroke="url(#brassGrad)" stroke-width="2" />
+        <ellipse cx="110" cy="170" rx="36" ry="5"
+          fill="none" stroke="url(#brassGrad)" stroke-width="2" />
+        <ellipse cx="110" cy="220" rx="32" ry="4"
+          fill="none" stroke="url(#brassGrad)" stroke-width="2" />
+
+        <!-- inner glass envelope (slim teardrop) -->
+        <path
+          d="M98 90
+             C 90 130, 90 200, 98 230
+             L 122 230
+             C 130 200, 130 130, 122 90 Z"
+          fill="url(#glassGrad)"
+        />
+        <path
+          d="M98 90
+             C 90 130, 90 200, 98 230
+             L 122 230
+             C 130 200, 130 130, 122 90 Z"
+          fill="url(#glassRim)" opacity="0.8"
+        />
+        <ellipse cx="100" cy="115" rx="2.5" ry="14"
+          fill="#ffffff" opacity="0.5" />
+
+        <!-- carbon-wire spiral filament: tightly wound -->
+        <g class="bulb-filament" filter="url(#softGlow)"
+           stroke="url(#filamentGrad)" stroke-width="1.6"
+           fill="none" stroke-linecap="round">
+          <path d="M110 100
+            C 100 104, 100 116, 110 120
+            C 120 124, 120 136, 110 140
+            C 100 144, 100 156, 110 160
+            C 120 164, 120 176, 110 180
+            C 100 184, 100 196, 110 200
+            C 120 204, 120 216, 110 220" />
+          <!-- bright core dot -->
+          <circle cx="110" cy="160" r="2.4" fill="#ffffff" />
+        </g>
+
+        <!-- bottom brass plate -->
+        <rect x="78" y="240" width="64" height="6" fill="url(#brassGrad)" />
+        <rect x="78" y="246" width="64" height="2" fill="#1a1108" />
+        <!-- finial -->
+        <path d="M104 248 L 116 248 L 113 258 L 107 258 Z"
+          fill="url(#brassGrad)" />
+        <circle cx="110" cy="262" r="3" fill="url(#brassGrad)" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- ============================================================
+       SECTION 1 — CREATIVE ENTRY (Hero)
+       ============================================================ -->
+  <section id="section-1" class="story-section section-hero" data-section="1">
+    <div class="hero-grid">
+      <!-- LEFT: hanging bulb hover zone + brand logo reveal -->
+      <div class="hero-left">
+        <!-- Suspended wire visible at top, the global bulb hangs from here -->
+        <div class="hanging-rail" aria-hidden="true"></div>
+
+        <!-- Hover hot zone covers the bulb area; reveals the brand logo when hovered -->
+        <div class="hero-hover-zone" id="heroHoverZone" tabindex="0" aria-label="Illuminate the bulb"></div>
+
+        <!-- Hidden brand logo, revealed when bulb illuminates -->
+        <div class="brand-reveal" id="brandReveal">
+          <div class="brand-mark">
+            <svg viewBox="0 0 200 80" aria-hidden="true">
+              <text x="100" y="56" text-anchor="middle" class="brand-text">MAGICRAFT</text>
+            </svg>
+          </div>
+          <div class="brand-tag">A studio of small wonders</div>
+        </div>
+
+        <!-- Hero copy below the bulb -->
+        <div class="hero-copy">
+          <p class="eyebrow">— A scroll-told story</p>
+          <h1 class="hero-title">
+            Light the<br />
+            <span class="hero-italic">bulb.</span>
+          </h1>
+          <p class="hero-sub">
+            Hover the lamp. Then keep scrolling. The light moves with you.
+          </p>
+          <div class="scroll-hint" aria-hidden="true">
+            <span>scroll</span>
+            <span class="scroll-line"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: interactive dot matrix -->
+      <div class="hero-right">
+        <canvas id="dotMatrix" class="dot-matrix" aria-hidden="true"></canvas>
+        <div class="hero-perspective-corners" aria-hidden="true">
+          <span class="cnr cnr-tl"></span>
+          <span class="cnr cnr-tr"></span>
+          <span class="cnr cnr-bl"></span>
+          <span class="cnr cnr-br"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 2 — BEHIND THE MAGIC (About)
+       ============================================================ -->
+  <section id="section-2" class="story-section section-about" data-section="2">
+    <!-- The wall the sconce mounts into -->
+    <div class="virtual-wall" aria-hidden="true">
+      <div class="wall-seam wall-seam-l"></div>
+      <div class="wall-seam wall-seam-r"></div>
+    </div>
+
+    <!-- Cone of light cast onto the right wall -->
+    <div class="light-cone" id="lightCone" aria-hidden="true"></div>
+
+    <div class="about-content">
+      <p class="eyebrow">— Behind the magic</p>
+      <h2 class="section-title">A small studio<br />with patient hands.</h2>
+      <p class="about-body">
+        Magicraft is a five-person workshop that designs, writes and ships
+        digital things for founders who care about how the cursor lands on
+        the page. We are slow on purpose, sharp by training and quietly
+        obsessed with the last ten percent.
+      </p>
+      <ul class="about-stats">
+        <li><span class="stat-num">12</span><span class="stat-label">years lit</span></li>
+        <li><span class="stat-num">84</span><span class="stat-label">launches</span></li>
+        <li><span class="stat-num">5</span><span class="stat-label">humans</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 3 — OUR PLAYGROUND (Services)
+       ============================================================ -->
+  <section id="section-3" class="story-section section-services" data-section="3">
+    <header class="services-header">
+      <p class="eyebrow">— Our playground</p>
+      <h2 class="section-title centered">
+        Three cupboards.<br />Open them.
+      </h2>
+    </header>
+
+    <!-- Cupboard row -->
+    <div class="cupboard-row">
+      <article class="cupboard" data-service="seo" tabindex="0">
+        <div class="cupboard-door">
+          <div class="cupboard-handle" aria-hidden="true"></div>
+          <div class="cupboard-label">SEO</div>
+          <div class="cupboard-sub">Search Engine Optimization</div>
+        </div>
+        <div class="cupboard-interior">
+          <h3>SEO</h3>
+          <p>Technical audits, content architecture and the unglamorous schema work that ranks.</p>
+          <ul>
+            <li>Core Web Vitals</li>
+            <li>Topical maps</li>
+            <li>Link earning</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="cupboard" data-service="sem" tabindex="0">
+        <div class="cupboard-door">
+          <div class="cupboard-handle" aria-hidden="true"></div>
+          <div class="cupboard-label">SEM</div>
+          <div class="cupboard-sub">Search Engine Marketing</div>
+        </div>
+        <div class="cupboard-interior">
+          <h3>SEM</h3>
+          <p>Paid search that knows when to bid, when to bow out, and when to spend the whole budget on Tuesday.</p>
+          <ul>
+            <li>Google &amp; Bing Ads</li>
+            <li>Landing-page tuning</li>
+            <li>Attribution that holds up</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="cupboard" data-service="smm" tabindex="0">
+        <div class="cupboard-door">
+          <div class="cupboard-handle" aria-hidden="true"></div>
+          <div class="cupboard-label">SMM</div>
+          <div class="cupboard-sub">Social Media Marketing</div>
+        </div>
+        <div class="cupboard-interior">
+          <h3>SMM</h3>
+          <p>Posts that earn the scroll. Calendars that respect your team. Numbers your CFO recognizes.</p>
+          <ul>
+            <li>Channel strategy</li>
+            <li>Creative production</li>
+            <li>Community</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 4 — MADE WITH MAGIC (Portfolio)
+       ============================================================ -->
+  <section id="section-4" class="story-section section-portfolio" data-section="4">
+    <!-- Desk surface texture -->
+    <div class="desk-surface" aria-hidden="true"></div>
+
+    <!-- Warm directional cone from the table lamp -->
+    <div class="lamp-cone" id="lampCone" aria-hidden="true"></div>
+
+    <div class="portfolio-grid">
+      <header class="portfolio-header">
+        <p class="eyebrow">— Made with magic</p>
+        <h2 class="section-title">Recent work,<br />on the desk.</h2>
+        <p class="portfolio-sub">
+          Hover the tablet to scrub. The carousel listens to your cursor.
+        </p>
+      </header>
+
+      <!-- Tablet mockup with horizontal carousel inside -->
+      <div class="tablet" id="tablet" aria-label="Portfolio carousel">
+        <div class="tablet-bezel">
+          <div class="tablet-camera" aria-hidden="true"></div>
+          <div class="tablet-screen">
+            <div class="tablet-track" id="tabletTrack">
+              <!-- Project cards (will be duplicated in JS for seamless loop) -->
+              <div class="project-card" style="--accent:#ff8a3d">
+                <div class="project-thumb" data-bg="grid"></div>
+                <div class="project-meta">
+                  <div class="project-name">Lumen Studio</div>
+                  <div class="project-tag">Brand · Web · 2025</div>
+                </div>
+              </div>
+              <div class="project-card" style="--accent:#7dd3fc">
+                <div class="project-thumb" data-bg="dots"></div>
+                <div class="project-meta">
+                  <div class="project-name">North &amp; Pine</div>
+                  <div class="project-tag">eCommerce · 2025</div>
+                </div>
+              </div>
+              <div class="project-card" style="--accent:#fde68a">
+                <div class="project-thumb" data-bg="lines"></div>
+                <div class="project-meta">
+                  <div class="project-name">Folio Press</div>
+                  <div class="project-tag">Editorial · 2024</div>
+                </div>
+              </div>
+              <div class="project-card" style="--accent:#a78bfa">
+                <div class="project-thumb" data-bg="rings"></div>
+                <div class="project-meta">
+                  <div class="project-name">Arcadia Foods</div>
+                  <div class="project-tag">Packaging · 2024</div>
+                </div>
+              </div>
+              <div class="project-card" style="--accent:#fb7185">
+                <div class="project-thumb" data-bg="grid"></div>
+                <div class="project-meta">
+                  <div class="project-name">Hearth &amp; Stone</div>
+                  <div class="project-tag">Hospitality · 2024</div>
+                </div>
+              </div>
+              <div class="project-card" style="--accent:#34d399">
+                <div class="project-thumb" data-bg="dots"></div>
+                <div class="project-meta">
+                  <div class="project-name">Telegraph</div>
+                  <div class="project-tag">Product · 2023</div>
+                </div>
+              </div>
+            </div>
+            <!-- glare reflection that shifts with mouse -->
+            <div class="tablet-glare" id="tabletGlare" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="tablet-shadow" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECTION 5 — KNOCK ON OUR DOOR (Contact)
+       ============================================================ -->
+  <section id="section-5" class="story-section section-contact" data-section="5">
+    <div class="room-floor" aria-hidden="true"></div>
+    <div class="room-shadow" id="roomShadow" aria-hidden="true"></div>
+
+    <div class="contact-stage">
+      <div class="contact-prompt">
+        <p class="eyebrow">— Knock on our door</p>
+        <h2 class="section-title">Come in.</h2>
+        <p class="prompt-body">Tap the brass handle. The door swings open.</p>
+      </div>
+
+      <!-- The wooden door (3D perspective container) -->
+      <div class="door-stage" id="doorStage">
+        <div class="door-frame">
+          <div class="door door-left" id="doorLeft" aria-hidden="true">
+            <div class="door-panels">
+              <span class="door-panel"></span>
+              <span class="door-panel"></span>
+              <span class="door-panel"></span>
+            </div>
+            <div class="door-grain"></div>
+          </div>
+          <div class="door door-right" id="doorRight">
+            <div class="door-panels">
+              <span class="door-panel"></span>
+              <span class="door-panel"></span>
+              <span class="door-panel"></span>
+            </div>
+            <div class="door-grain"></div>
+            <button
+              class="door-handle"
+              id="doorHandle"
+              type="button"
+              aria-label="Open the door"
+            ></button>
+          </div>
+        </div>
+
+        <!-- Inner chamber revealed when doors swing open -->
+        <div class="inner-chamber" id="innerChamber">
+          <form class="contact-form" id="contactForm" novalidate>
+            <h3>Let’s build something.</h3>
+            <div class="field">
+              <input type="text" id="f-name" name="name" required />
+              <label for="f-name">Name</label>
+              <span class="field-line"></span>
+            </div>
+            <div class="field">
+              <input type="email" id="f-email" name="email" required />
+              <label for="f-email">Email</label>
+              <span class="field-line"></span>
+            </div>
+            <div class="field">
+              <input type="text" id="f-loc" name="location" />
+              <label for="f-loc">Address / location</label>
+              <span class="field-line"></span>
+            </div>
+            <div class="field">
+              <textarea id="f-msg" name="message" rows="3" required></textarea>
+              <label for="f-msg">Project details</label>
+              <span class="field-line"></span>
+            </div>
+            <button class="contact-submit" type="submit">Send a signal</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <span>© Magicraft · Built with Kiro</span>
+      <span class="dot-sep">·</span>
+      <span>hello@magicraft.studio</span>
+    </footer>
+  </section>
+
+  <!-- ============================================================
+       GSAP + plugins (CDN), then app
+       ============================================================ -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/MotionPathPlugin.min.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
